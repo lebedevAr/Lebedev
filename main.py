@@ -106,17 +106,17 @@ class InputConnect:
     def __init__(self):
         self.file_name = input('Введите название файла: ')
         self.vacancy_name = input('Введите название профессии: ')
-        self.user_input = input('Вакансии или статистика?: ')
+        self.user_select = input('Вакансии или статистика?: ')
         dataset = DataSet(self.file_name, self.vacancy_name)
         stats1, stats2, stats3, stats4, stats5, stats6 = dataset.get_stats()
         #dataset.print_statistic(stats1, stats2, stats3, stats4, stats5, stats6)
         new_graphic = Report(self.vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6)
 
-        if self.user_input.lower() == 'вакансии':
+        if self.user_select.lower() == 'вакансии':
             ws1 = new_graphic.get_first_sheet()
             ws2 = new_graphic.get_second_sheet()
             new_graphic.generate_excel(ws1, ws2)
-        elif self.user_input.lower() == 'статистика':
+        elif self.user_select.lower() == 'статистика':
             new_graphic.generate_image()
 
         #new_graphic.generate_pdf()
