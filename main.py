@@ -10,10 +10,26 @@ import pdfkit
 
 
 class Vacancy:
+    """Класс для представления вакансии.
+
+    Attributes:
+        name (str): Название вакансии
+        salary_from (int): Нижняя гранциа вилки оклада
+        salary_to (int): Верхняя гранциа вилки оклада
+        salary_currency (str): Значение валюты оклада
+        salary_average (int): Среднее значение зарплаты
+        area_name (str): Город, указанный в вакансии
+        year (int): Год публикации вакансии.
+    """
     to_rub_dict = {"AZN": 35.68, "BYR": 23.91, "EUR": 59.90, "GEL": 21.74, "KGS": 0.76, "KZT": 0.13, "RUR": 1,
                    "UAH": 1.64, "USD": 60.66, "UZS": 0.0055}
 
     def __init__(self, vacancy):
+        """Инициализирует объект Vacancy, выполняет конвертации для целочисленных полей.
+
+        Args:
+            vacancy (dict): Словарь содержащий поля вакансии, необходиме для инициализации полей объекта Vacancy.
+        """
         self.name = vacancy['name']
         self.salary_from = int(float(vacancy['salary_from']))
         self.salary_to = int(float(vacancy['salary_to']))
@@ -24,11 +40,29 @@ class Vacancy:
 
 
 class DataSet:
+    """Класс для обработки и хранения данных из csv файла.
+
+    Attributes:
+        file_name (str): название csv файла, расположенного в папке проекта
+        vacancy_name (str): Название вакансии, по которой требуется.
+    """
     def __init__(self, file_name, vacancy_name):
+        """Инициализирует объект Vacancy, выполняет конвертации для целочисленных полей.
+
+        Args:
+            file_name (str): название csv файла, расположенного в папке проекта
+            vacancy_name (str): Название вакансии, по которой требуется.
+        """
+
         self.file_name = file_name
         self.vacancy_name = vacancy_name
 
     def csv_reader(self):
+        """Читает csv файл и выделяет названия полей.
+
+        Returns:
+            dict: dict (key - названия полей, value - значения полей).
+        """
         with open(self.file_name, mode='r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             header = next(reader)
@@ -39,6 +73,14 @@ class DataSet:
 
     @staticmethod
     def avg(dictionary):
+        """Создает словарь со средним значение по годам.
+
+        Args:
+            dictionary (dict): Словарь (key - год, value - list значений).
+
+        Returns:
+            dict: key - год, value - среднее значение за год.
+        """
         new_dict = {}
         for key, values in dictionary.items():
             new_dict[key] = int(sum(values) / len(values))
@@ -46,12 +88,30 @@ class DataSet:
 
     @staticmethod
     def increment(dictionary, key, amount):
+        """Служит для сбора статистики по ключу.
+
+        Args:
+            dictionary (dict): словарь, в который сохраняется статистика
+            key (int): Ключ нужного элемента
+            amount (list[int]): Количество элементов.
+        """
         if key in dictionary:
             dictionary[key] += amount
         else:
             dictionary[key] = amount
 
     def get_stats(self):
+        """Собирает полную статистику по csv файлу, необходимую для дальнейшей работы программы.
+
+        Returns:
+        stats (dict{int :int}): key - год, value - средняя з/п по всем вакансиям
+            stats2 (dict{int :int}): key - год, value - количество вакансий ||
+            stats3 (dict{int :int}): key - город, value - средняя з/п в Городе ||
+            stats4 (dict{int :int}): key - год, value - количество вакансий по выбранной профессии ||
+            stats5 (dict{str :int}): key - Город, value - средняя з/п ||
+            stats6 (dict{str :int}): key - Город, value - доля по выбранной вакансии от общего количества.
+
+        """
         salary = {}
         salary_of_vacancy = {}
         salary_city = {}
@@ -94,6 +154,16 @@ class DataSet:
 
     @staticmethod
     def print_statistic(stats1, stats2, stats3, stats4, stats5, stats6):
+        """Печатает статистику в консоль
+
+        Args:
+            stats1 (dict): key - год, value - средняя з/п по всем вакансиям
+            stats2 (dict): key - год, value - количество вакансий
+            stats3 (dict): key - город, value - средняя з/п в Городе
+            stats4 (dict): key - год, value - количество вакансий по выбранной профессии
+            stats5 (dict): key - Город, value - средняя з/п
+            stats6 (dict): key - Город, value - доля по выбранной вакансии от общего количества.
+        """
         print('Динамика уровня зарплат по годам: ' + str(stats1))
         print('Динамика количества вакансий по годам: ' + str(stats2))
         print('Динамика уровня зарплат по годам для выбранной профессии: ' + str(stats3))
@@ -103,7 +173,16 @@ class DataSet:
 
 
 class InputConnect:
+    """Класс для сохранения отчёта.
+
+    Attributes:
+        file_name (str): название csv файла, расположенного в папке проекта
+        vacancy_name (str): Название вакансии, по которой требуется.
+        user_select (str): Ключевое слово, определяющее в каком виде сохранить отчёт
+    """
     def __init__(self):
+        """Инициализирует объект InputConnect, выполняет сохранение отчёта в зависимости от выбранного типа."""
+
         self.file_name = input('Введите название файла: ')
         self.vacancy_name = input('Введите название профессии: ')
         self.user_select = input('Вакансии или статистика?: ')
@@ -123,7 +202,21 @@ class InputConnect:
 
 
 class Report:
+    """Класс для формирования отчёта.
+
+        Attributes:
+            wb (Workbook): название csv файла, расположенного в папке проекта
+            vacancy_name (str): Название вакансии, по которой требуется
+            stats1 (dict): key - год, value - средняя з/п по всем вакансиям
+            stats2 (dict): key - год, value - количество вакансий
+            stats3 (dict): key - город, value - средняя з/п в Городе
+            stats4 (dict): key - год, value - количество вакансий по выбранной профессии
+            stats5 (dict): key - Город, value - средняя з/п
+            stats6 (dict): key - Город, value - доля по выбранной вакансии от общего количества.
+        """
     def __init__(self, vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6):
+        """Инициализирует объект InputConnect."""
+
         self.wb = Workbook()
         self.vacancy_name = vacancy_name
         self.stats1 = stats1
@@ -134,6 +227,7 @@ class Report:
         self.stats6 = stats6
 
     def generate_image(self):
+        """Создаёт и сохраняет изображение с 4 графиками статистики."""
         fig, ax = plt.subplots(2, 2)
         x_axis = np.arange(len(self.stats1.keys()))
 
@@ -142,6 +236,12 @@ class Report:
         values = list(data.values())
 
         def get_columns():
+            """Распределяет названия столбцов
+
+            Returns:
+            labels (list[str]): Названия городов
+                sizes (list[int]): Доли профессий на город
+            """
             new_dic = {'Другие': 1 - sum((list(self.stats6.values())))}
             new_dic.update(self.stats6)
             stats6 = new_dic
@@ -150,6 +250,15 @@ class Report:
             return labels, sizes
 
         def get_graph(i, stats1, stats2, name, text):
+            """Создаёт график под определенный номер
+
+            Args:
+                i (int): номер графика
+                stats1 (dict):
+                stats2 (dict):
+                name (str): Название профессии
+                text (list[str]): Текст для графика
+            """
             w = 0.4
             ax[0, i].bar(x_axis - w / 2, stats1.values(), width=w, label=text[0])
             ax[0, i].bar(x_axis + w / 2, stats2.values(), width=w, label=text[1] + str(name))
@@ -180,6 +289,11 @@ class Report:
         plt.savefig('graph.png', dpi=300)
 
     def get_first_sheet(self):
+        """Создаёт объект Excel worksheet
+
+        Returns:
+            ws1 : Первый лист объекта
+        """
         ws1 = self.wb.active
         ws1.title = 'Статистика по годам'
         ws1.append(['Год', 'Средняя зарплата', 'Средняя зарплата - ' + self.vacancy_name, 'Количество вакансий',
@@ -203,6 +317,11 @@ class Report:
         return ws1
 
     def get_second_sheet(self):
+        """Создаёт объект Excel worksheet
+
+        Returns:
+            ws2 : Второй лист объекта
+        """
         new_data = [['Город', 'Уровень зарплат', '', 'Город', 'Доля вакансий']]
 
         for (city1, value1), (city2, value2) in zip(self.stats5.items(), self.stats6.items()):
@@ -227,6 +346,13 @@ class Report:
         return ws2
 
     def generate_excel(self, ws1, ws2):
+        """Склеивает 2 листа в один файл Excel и сохраняет со всеми настройками
+
+        Args:
+            ws1 : Первый лист Excel
+            ws2 : Второй лист Excel
+        """
+
         font_bold = Font(bold=True)
         for colum in 'ABCDE':
             ws1[colum + '1'].font = font_bold
@@ -249,6 +375,7 @@ class Report:
         self.wb.save('report.xlsx')
 
     def generate_pdf(self):
+        """Совмещает в себе статистику на графиках и в таблицах, сохраняет в формате pdf"""
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template("pdf_template.html")
         stats = []
