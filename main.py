@@ -46,6 +46,7 @@ class DataSet:
         file_name (str): название csv файла, расположенного в папке проекта
         vacancy_name (str): Название вакансии, по которой требуется.
     """
+
     def __init__(self, file_name, vacancy_name):
         """Инициализирует объект Vacancy, выполняет конвертации для целочисленных полей.
 
@@ -79,7 +80,7 @@ class DataSet:
             dictionary (dict): Словарь (key - год, value - list значений).
 
         Returns:
-            dict: key - год, value - среднее значение за год.
+            1) (dict): dict(key - год, value - среднее значение за год).
         """
         new_dict = {}
         for key, values in dictionary.items():
@@ -104,14 +105,14 @@ class DataSet:
         """Собирает полную статистику по csv файлу, необходимую для дальнейшей работы программы.
 
         Returns:
-        stats (dict{int :int}): key - год, value - средняя з/п по всем вакансиям
-            stats2 (dict{int :int}): key - год, value - количество вакансий ||
-            stats3 (dict{int :int}): key - город, value - средняя з/п в Городе ||
-            stats4 (dict{int :int}): key - год, value - количество вакансий по выбранной профессии ||
-            stats5 (dict{str :int}): key - Город, value - средняя з/п ||
-            stats6 (dict{str :int}): key - Город, value - доля по выбранной вакансии от общего количества.
+                1) (dict): key - год, value - средняя з/п по всем вакансиям
+		        2) (dict): key - год, value - количество вакансий
+		        3) (dict): key - город, value - средняя з/п в Городе
+		        4) (dict): key - год, value - количество вакансий по выбранной профессии
+		        5) (dict): key - Город, value - средняя з/п
+		        6) (dict): key - Город, value - доля по выбранной вакансии от общего количества
+		"""
 
-        """
         salary = {}
         salary_of_vacancy = {}
         salary_city = {}
@@ -157,12 +158,12 @@ class DataSet:
         """Печатает статистику в консоль
 
         Args:
-            stats1 (dict): key - год, value - средняя з/п по всем вакансиям
-            stats2 (dict): key - год, value - количество вакансий
-            stats3 (dict): key - город, value - средняя з/п в Городе
-            stats4 (dict): key - год, value - количество вакансий по выбранной профессии
-            stats5 (dict): key - Город, value - средняя з/п
-            stats6 (dict): key - Город, value - доля по выбранной вакансии от общего количества.
+            stats1 (dict): dict(key - год, value - средняя з/п по всем вакансиям)
+            stats2 (dict): dict(key - год, value - количество вакансий)
+            stats3 (dict): dict(key - город, value - средняя з/п в Городе)
+            stats4 (dict): dict(key - год, value - количество вакансий по выбранной профессии)
+            stats5 (dict): dict(key - Город, value - средняя з/п)
+            stats6 (dict): dict(key - Город, value - доля по выбранной вакансии от общего количества).
         """
         print('Динамика уровня зарплат по годам: ' + str(stats1))
         print('Динамика количества вакансий по годам: ' + str(stats2))
@@ -180,6 +181,7 @@ class InputConnect:
         vacancy_name (str): Название вакансии, по которой требуется.
         user_select (str): Ключевое слово, определяющее в каком виде сохранить отчёт
     """
+
     def __init__(self):
         """Инициализирует объект InputConnect, выполняет сохранение отчёта в зависимости от выбранного типа."""
 
@@ -188,7 +190,7 @@ class InputConnect:
         self.user_select = input('Вакансии или статистика?: ')
         dataset = DataSet(self.file_name, self.vacancy_name)
         stats1, stats2, stats3, stats4, stats5, stats6 = dataset.get_stats()
-        #dataset.print_statistic(stats1, stats2, stats3, stats4, stats5, stats6)
+        # dataset.print_statistic(stats1, stats2, stats3, stats4, stats5, stats6)
         new_graphic = Report(self.vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6)
 
         if self.user_select.lower() == 'вакансии':
@@ -198,7 +200,7 @@ class InputConnect:
         elif self.user_select.lower() == 'статистика':
             new_graphic.generate_image()
 
-        #new_graphic.generate_pdf()
+        # new_graphic.generate_pdf()
 
 
 class Report:
@@ -214,6 +216,7 @@ class Report:
             stats5 (dict): key - Город, value - средняя з/п
             stats6 (dict): key - Город, value - доля по выбранной вакансии от общего количества.
         """
+
     def __init__(self, vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6):
         """Инициализирует объект InputConnect."""
 
@@ -254,11 +257,12 @@ class Report:
 
             Args:
                 i (int): номер графика
-                stats1 (dict):
-                stats2 (dict):
+                stats1 (dict): данные для графика
+                stats2 (dict): данные для графика
                 name (str): Название профессии
                 text (list[str]): Текст для графика
             """
+
             w = 0.4
             ax[0, i].bar(x_axis - w / 2, stats1.values(), width=w, label=text[0])
             ax[0, i].bar(x_axis + w / 2, stats2.values(), width=w, label=text[1] + str(name))
@@ -375,7 +379,7 @@ class Report:
         self.wb.save('report.xlsx')
 
     def generate_pdf(self):
-        """Совмещает в себе статистику на графиках и в таблицах, сохраняет в формате pdf"""
+        """Совмещает в себе статистику на графиках и в таблицах, сохраняет файл в формате pdf"""
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template("pdf_template.html")
         stats = []
