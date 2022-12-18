@@ -32,14 +32,12 @@ class Vacancy:
         Args:
             vacancy (dict): Словарь содержащий поля вакансии, необходиме для инициализации полей объекта Vacancy.
 
-        >>> type(Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'})).__name__
-		'Vacancy'
 		>>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).name
 		'Программист'
 		>>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).area_name
 		'Екатеринбург'
 		>>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).year
-		'2020'
+		2020
 		"""
 
         self.name = vacancy['name']
@@ -67,7 +65,7 @@ class DataSet:
             vacancy_name (str): Название вакансии, по которой требуется.
 
         >>> DataSet('vacancies_by_year.csv', 'Программист').file_name
-		'vacancies_by_year.csv'
+        'vacancies_by_year.csv'
 		>>> DataSet('vacancies.csv', 'Программист').file_name
 		'vacancies.csv'
 		>>> DataSet('vacancies.csv', 'Аналитик').vacancy_name
@@ -241,12 +239,22 @@ class Report:
     def __init__(self, vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6):
         """Инициализирует объект InputConnect.
 
-        >>> Report({'2020': 30000, '2019': 35000}, {}, {}, {}, {}, {}).salary['2019']
-		35000
-		>>> Report({}, {'2020': 1000, '2019': 700}, {}, {}, {}, {}).amount['2020']
+        >>> Report("Аналитик", {'2020': 30000, '2019': 35000}, {}, {}, {}, {}, {}).stats1["2019"]
+        35000
+		>>> Report("Аналитик", {}, {'2020': 1000, '2019': 700}, {}, {}, {}, {}).stats2['2020']
 		1000
-		>>> Report({}, {}, {}, {}, {}, {'Москва': 0.23, 'Екатеринбург': 0.11}).stats6['Москва']
+		>>> Report("Аналитик", {}, {}, {'Екатеринбург': 31000, 'Москва': 47000}, {}, {}, {}).stats3['Москва']
+		47000
+		>>> Report("Аналитик", {}, {}, {'Екатеринбург': 31000, 'Москва': 47000}, {}, {}, {}).stats3['Екатеринбург']
+		31000
+		>>> Report("Аналитик", {}, {}, {}, {'2020': 1000, '2019': 700}, {}, {}).stats4['2020']
+		1000
+		>>> Report("Аналитик", {}, {}, {}, {}, {'Екатеринбург': 200, 'Москва': 600}, {}).stats5['Москва']
+		600
+		>>> Report("Аналитик", {}, {}, {}, {}, {}, {'Москва': 0.23, 'Екатеринбург': 0.11}).stats6['Москва']
 		0.23
+		>>> Report("Аналитик", {}, {}, {}, {}, {}, {'Москва': 0.23, 'Екатеринбург': 0.11}).vacancy_name
+		'Аналитик'
 		"""
 
         self.wb = Workbook()
