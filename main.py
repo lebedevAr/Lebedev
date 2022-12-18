@@ -1,11 +1,14 @@
 import csv
 import pathlib
-import pdfkit
 
+import pdfkit
+import datetime
+
+from zad import profile
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Border, Side
-from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,7 +24,7 @@ class Vacancy:
         salary_currency (str): Значение валюты оклада
         salary_average (int): Среднее значение зарплаты
         area_name (str): Город, указанный в вакансии
-        year (int): Год публикации вакансии.
+        published_at (str): Дата публикации вакансии.
     """
     to_rub_dict = {"AZN": 35.68, "BYR": 23.91, "EUR": 59.90, "GEL": 21.74, "KGS": 0.76, "KZT": 0.13, "RUR": 1,
                    "UAH": 1.64, "USD": 60.66, "UZS": 0.0055}
@@ -36,8 +39,8 @@ class Vacancy:
 		# 'Программист'
 		# >>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).area_name
 		# 'Екатеринбург'
-		# >>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).year
-		# 2020
+		#>>> Vacancy({'name': 'Программист', 'salary_from': '20000', 'salary_to': '30000', 'salary_currency': 'RUR', 'area_name': 'Екатеринбург', 'published_at': '2020-11-03T17:11:35+0300'}).published_at
+		#'2020-11-03T17:11:35+0300'
 		#"""
 
         self.name = vacancy['name']
@@ -46,7 +49,12 @@ class Vacancy:
         self.salary_currency = vacancy['salary_currency']
         self.salary_average = self.to_rub_dict[self.salary_currency] * (self.salary_from + self.salary_to) / 2
         self.area_name = vacancy['area_name']
-        self.year = int(vacancy['published_at'][:4])
+        #self.year = int(vacancy['published_at'][:4])
+        self.published_at = vacancy['published_at']
+
+    def parse_det_with_slices(self):
+        date = self.published_at
+        return f'{date[8:10].replace("0", "")}.{date[5:7]}.{date[:4]}'
 
 
 class DataSet:
@@ -72,7 +80,7 @@ class DataSet:
 		# 'Аналитик'
 		# >>> DataSet('vacancies.csv', 'Программист').vacancy_name
 		# 'Программист'
-		#"""
+		# """
 
         self.file_name = file_name
         self.vacancy_name = vacancy_name
@@ -141,9 +149,9 @@ class DataSet:
 
         for vacancy_dictionary in new_csv:
             vacancy = Vacancy(vacancy_dictionary)
-            self.increment(salary, vacancy.year, [vacancy.salary_average])
+            self.increment(salary, int(vacancy.parse_det_with_slices().split(".")[2]), [vacancy.salary_average])
             if vacancy.name.find(self.vacancy_name) != -1:
-                self.increment(salary_of_vacancy, vacancy.year, [vacancy.salary_average])
+                self.increment(salary_of_vacancy, int(vacancy.parse_det_with_slices().split(".")[2]), [vacancy.salary_average])
             self.increment(salary_city, vacancy.area_name, [vacancy.salary_average])
             vacancies_counter += 1
 
@@ -255,7 +263,7 @@ class Report:
 		# 0.23
 		# >>> Report("Аналитик", {}, {}, {}, {}, {}, {'Москва': 0.23, 'Екатеринбург': 0.11}).vacancy_name
 		# 'Аналитик'
-		#"""
+		# """
 
         self.wb = Workbook()
         self.vacancy_name = vacancy_name
