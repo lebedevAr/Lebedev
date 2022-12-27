@@ -1,10 +1,8 @@
 import csv
 import pathlib
-
+import pandas as pd
 import pdfkit
-import datetime
-
-from zad import profile
+import os
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Border, Side
@@ -49,7 +47,7 @@ class Vacancy:
         self.salary_currency = vacancy['salary_currency']
         self.salary_average = self.to_rub_dict[self.salary_currency] * (self.salary_from + self.salary_to) / 2
         self.area_name = vacancy['area_name']
-        #self.year = int(vacancy['published_at'][:4])
+        # self.year = int(vacancy['published_at'][:4])
         self.published_at = vacancy['published_at']
 
     def parse_det_with_slices(self):
@@ -84,6 +82,19 @@ class DataSet:
 
         self.file_name = file_name
         self.vacancy_name = vacancy_name
+
+    def load_chunks(self):
+        pd.set_option("expand_frame_repr", False)
+        df = pd.read_csv(self.file_name)
+        df["years"] = df["published_at"].apply(lambda s: int(s[:4]))
+        years = df["years"].unique()
+        if not os.path.exists("csv"):
+            os.mkdir("csv")
+        for year in years:
+            data = df[df["years"] == year]
+            data.iloc[:, :6].to_csv(rf"csv/year_{year}.csv", index=False)
+        print(df.head(10))
+        print(years)
 
     def csv_reader(self):
         """Читает csv файл и выделяет названия полей.
@@ -151,7 +162,8 @@ class DataSet:
             vacancy = Vacancy(vacancy_dictionary)
             self.increment(salary, int(vacancy.parse_det_with_slices().split(".")[2]), [vacancy.salary_average])
             if vacancy.name.find(self.vacancy_name) != -1:
-                self.increment(salary_of_vacancy, int(vacancy.parse_det_with_slices().split(".")[2]), [vacancy.salary_average])
+                self.increment(salary_of_vacancy, int(vacancy.parse_det_with_slices().split(".")[2]),
+                               [vacancy.salary_average])
             self.increment(salary_city, vacancy.area_name, [vacancy.salary_average])
             vacancies_counter += 1
 
@@ -443,4 +455,5 @@ class Report:
 
 
 if __name__ == '__main__':
-    InputConnect()
+    ds = DataSet("vacancies_by_year.csv", "Аналитик")
+    ds.load_chunks()
