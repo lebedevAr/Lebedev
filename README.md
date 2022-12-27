@@ -20,3 +20,6 @@ thought func
 ![pr4](https://user-images.githubusercontent.com/105739082/208319065-db5460c9-e883-4580-8655-099bb4e7fd89.png)
 
 По результатам профилирования самая быстрая функция получилась parse_det_with_slices
+
+# Создана функция разделения на чанки:
+![image](https://user-images.githubusercontent.com/105739082/209690103-3e7b9412-16ec-4555-a5ac-b965070528ad.png)
