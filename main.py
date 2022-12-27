@@ -1,10 +1,9 @@
 import csv
 import pathlib
-
+import os
+import pandas as pd
 import pdfkit
-import datetime
 
-from zad import profile
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Border, Side
@@ -84,6 +83,20 @@ class DataSet:
 
         self.file_name = file_name
         self.vacancy_name = vacancy_name
+
+    def load_chunks(self):
+        pd.set_option("expand_frame_repr", False)
+        df = pd.read_csv(self.file_name)
+        df["years"] = df["published_at"].apply(lambda s: int(s[:4]))
+        years = df["years"].unique()
+        if not os.path.exists("csv_files"):
+            os.mkdir("csv_files")
+        for year in years:
+            data = df[df["years"] == year]
+            data.iloc[:, :6].to_csv(rf"csv_files\year_{year}.csv", index=False)
+        print(df.head(10))
+        print(years)
+
 
     def csv_reader(self):
         """Читает csv файл и выделяет названия полей.
@@ -443,4 +456,5 @@ class Report:
 
 
 if __name__ == '__main__':
-    InputConnect()
+    ds = DataSet(r"C:\Users\artyo\PycharmProjects\pythonProject9\vacancies_by_year.csv", "Аналитик")
+    ds.load_chunks()
