@@ -5,11 +5,11 @@ import pdfkit
 import time
 
 from multiprocessing import Pool
+from concurrent.futures import ProcessPoolExecutor
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Border, Side
 from jinja2 import Environment, FileSystemLoader
-from profiling import profile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -256,7 +256,7 @@ class InputConnect:
         vacancy_name (str): Название вакансии, по которой требуется.
         user_select (str): Ключевое слово, определяющее в каком виде сохранить отчёт
     """
-    @profile
+
     def __init__(self):
         """Инициализирует объект InputConnect, выполняет сохранение отчёта в зависимости от выбранного типа."""
 
@@ -266,19 +266,28 @@ class InputConnect:
         dataset = DataSet(self.file_name, self.vacancy_name)
 
         st = time.time()
-
+        stats1, stats2, stats3, stats4 = {}, {}, {}, {}
         stats5, stats6 = dataset.get_stats()
         csv_list = ["csv_files/" + file for file in os.listdir("csv_files")]
+        year = int(csv_list[0].split("/")[1].split("_")[1].split(".")[0])
+
         with Pool(6) as p:
             answer = p.map(dataset.get_stats_multi, csv_list)
-        stats1, stats2, stats3, stats4 = {}, {}, {}, {}
-        year = int(csv_list[0].split("/")[1].split("_")[1].split(".")[0])
         for cort in answer:
             stats1[year] = cort[0][year]
             stats2[year] = cort[1][year]
             stats3[year] = cort[2][year]
             stats4[year] = cort[3][year]
             year += 1
+
+        # with ProcessPoolExecutor() as executor:
+        #     for file in csv_list:
+        #         i = executor.submit(dataset.get_stats_multi, file).result()
+        #         stats1[year] = i[0][year]
+        #         stats2[year] = i[1][year]
+        #         stats3[year] = i[2][year]
+        #         stats4[year] = i[3][year]
+        #         year += 1
 
         print("Время выполнения: " + str(time.time() - st) + " sec")
         print()
