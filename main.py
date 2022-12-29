@@ -1,16 +1,19 @@
 import csv
 import pathlib
 import os
-import pandas as pd
 import pdfkit
+import time
 
+from multiprocessing import Pool
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Border, Side
 from jinja2 import Environment, FileSystemLoader
+from profiling import profile
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 class Vacancy:
@@ -98,13 +101,19 @@ class DataSet:
         print(years)
 
 
-    def csv_reader(self):
+    def csv_reader(self, param, chank_name):
         """Читает csv файл и выделяет названия полей.
 
         Returns:
             dict: dict (key - названия полей, value - значения полей).
         """
-        with open(self.file_name, mode='r', encoding='utf-8-sig') as file:
+        file_name = ""
+        if param.lower() == "ordinary":
+            file_name = self.file_name
+        elif param.lower() == "chanks":
+            file_name = chank_name
+
+        with open(file_name, mode='r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             header = next(reader)
             header_length = len(header)
@@ -145,12 +154,8 @@ class DataSet:
         """Собирает полную статистику по csv файлу, необходимую для дальнейшей работы программы.
 
         Returns:
-            1) (dict): key - год, value - средняя з/п по всем вакансиям
-		    2) (dict): key - год, value - количество вакансий
-		    3) (dict): key - город, value - средняя з/п в Городе
-		    4) (dict): key - год, value - количество вакансий по выбранной профессии
-		    5) (dict): key - Город, value - средняя з/п
-		    6) (dict): key - Город, value - доля по выбранной вакансии от общего количества
+		    1) (dict): key - Город, value - средняя з/п
+		    2) (dict): key - Город, value - доля по выбранной вакансии от общего количества
 		"""
 
         salary = {}
@@ -158,7 +163,7 @@ class DataSet:
         salary_city = {}
         vacancies_counter = 0
 
-        new_csv = self.csv_reader()
+        new_csv = self.csv_reader(param="ordinary", chank_name=None)
 
         for vacancy_dictionary in new_csv:
             vacancy = Vacancy(vacancy_dictionary)
@@ -168,15 +173,6 @@ class DataSet:
             self.increment(salary_city, vacancy.area_name, [vacancy.salary_average])
             vacancies_counter += 1
 
-        vacancies_num = dict([(key, len(value)) for key, value in salary.items()])
-        number_by_name = dict([(key, len(value)) for key, value in salary_of_vacancy.items()])
-
-        if not salary_of_vacancy:
-            salary_of_vacancy = dict([(key, [0]) for key, value in salary.items()])
-            number_by_name = dict([(key, 0) for key, value in vacancies_num.items()])
-
-        stats = self.avg(salary)
-        stats2 = self.avg(salary_of_vacancy)
         stats3 = self.avg(salary_city)
 
         stats4 = {}
@@ -191,7 +187,46 @@ class DataSet:
         stats3 = dict(stats3[:10])
         stats5 = dict(stats5[:10])
 
-        return stats, vacancies_num, stats2, number_by_name, stats3, stats5
+        return stats3, stats5
+
+    def get_stats_multi(self, chank_year):
+        """Собирает полную статистику по csv файлу, необходимую для дальнейшей работы программы.
+
+                Returns:
+                    1) (dict): key - год, value - средняя з/п по всем вакансиям
+        		    2) (dict): key - год, value - количество вакансий
+        		    3) (dict): key - год, value - средняя з/п по выбранной профессии
+        		    4) (dict): key - год, value - количество вакансий по выбранной профессии
+        		"""
+
+        salary = {}
+        salary_of_vacancy = {}
+        salary_city = {}
+        vacancies_counter = 0
+
+        new_csv = self.csv_reader(param="chanks", chank_name=chank_year)
+
+        for vacancy_dictionary in new_csv:
+            vacancy = Vacancy(vacancy_dictionary)
+            self.increment(salary, int(vacancy.parse_det_with_slices().split(".")[2]), [vacancy.salary_average])
+            if vacancy.name.find(self.vacancy_name) != -1:
+                self.increment(salary_of_vacancy, int(vacancy.parse_det_with_slices().split(".")[2]),
+                               [vacancy.salary_average])
+            self.increment(salary_city, vacancy.area_name, [vacancy.salary_average])
+            vacancies_counter += 1
+
+        vacancies_num = dict([(key, len(value)) for key, value in salary.items()])
+        number_by_name = dict([(key, len(value)) for key, value in salary_of_vacancy.items()])
+
+        if not salary_of_vacancy:
+            salary_of_vacancy = dict([(key, [0]) for key, value in salary.items()])
+            number_by_name = dict([(key, 0) for key, value in vacancies_num.items()])
+
+        stats = self.avg(salary)
+        stats2 = self.avg(salary_of_vacancy)
+
+        return stats, vacancies_num, stats2, number_by_name
+
 
     @staticmethod
     def print_statistic(stats1, stats2, stats3, stats4, stats5, stats6):
@@ -200,7 +235,7 @@ class DataSet:
         Args:
             stats1 (dict): dict(key - год, value - средняя з/п по всем вакансиям)
             stats2 (dict): dict(key - год, value - количество вакансий)
-            stats3 (dict): dict(key - город, value - средняя з/п в Городе)
+            stats3 (dict): dict(key - год, value - средняя з/п по выбранной профессии)
             stats4 (dict): dict(key - год, value - количество вакансий по выбранной профессии)
             stats5 (dict): dict(key - Город, value - средняя з/п)
             stats6 (dict): dict(key - Город, value - доля по выбранной вакансии от общего количества).
@@ -221,16 +256,34 @@ class InputConnect:
         vacancy_name (str): Название вакансии, по которой требуется.
         user_select (str): Ключевое слово, определяющее в каком виде сохранить отчёт
     """
-
+    @profile
     def __init__(self):
         """Инициализирует объект InputConnect, выполняет сохранение отчёта в зависимости от выбранного типа."""
 
         self.file_name = input('Введите название файла: ')
         self.vacancy_name = input('Введите название профессии: ')
-        self.user_select = input('Вакансии или статистика?: ')
+        self.user_select = input('Вакансии или статистика: ')
         dataset = DataSet(self.file_name, self.vacancy_name)
-        stats1, stats2, stats3, stats4, stats5, stats6 = dataset.get_stats()
-        # dataset.print_statistic(stats1, stats2, stats3, stats4, stats5, stats6)
+
+        st = time.time()
+
+        stats5, stats6 = dataset.get_stats()
+        csv_list = ["csv_files/" + file for file in os.listdir("csv_files")]
+        with Pool(6) as p:
+            answer = p.map(dataset.get_stats_multi, csv_list)
+        stats1, stats2, stats3, stats4 = {}, {}, {}, {}
+        year = int(csv_list[0].split("/")[1].split("_")[1].split(".")[0])
+        for cort in answer:
+            stats1[year] = cort[0][year]
+            stats2[year] = cort[1][year]
+            stats3[year] = cort[2][year]
+            stats4[year] = cort[3][year]
+            year += 1
+
+        print("Время выполнения: " + str(time.time() - st) + " sec")
+        print()
+
+        dataset.print_statistic(stats1, stats2, stats3, stats4, stats5, stats6)
         new_graphic = Report(self.vacancy_name, stats1, stats2, stats3, stats4, stats5, stats6)
 
         if self.user_select.lower() == 'вакансии':
@@ -240,7 +293,7 @@ class InputConnect:
         elif self.user_select.lower() == 'статистика':
             new_graphic.generate_image()
 
-        # new_graphic.generate_pdf()
+        #new_graphic.generate_pdf()
 
 
 class Report:
@@ -456,5 +509,4 @@ class Report:
 
 
 if __name__ == '__main__':
-    ds = DataSet(r"C:\Users\artyo\PycharmProjects\pythonProject9\vacancies_by_year.csv", "Аналитик")
-    ds.load_chunks()
+    InputConnect()
