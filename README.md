@@ -27,6 +27,6 @@ thought func
 # Время выполнения без multiprocessing
 ![multi2](https://user-images.githubusercontent.com/105739082/210015406-7ad25453-9b78-4317-88cc-cd217a04e008.png)
 
-Время выполнения с multiprocessing (6 threads)
+#Время выполнения с multiprocessing (6 threads)
 ![multi1](https://user-images.githubusercontent.com/105739082/210015453-58ff6fc7-5e88-451e-9071-a54d6f0b421c.png)
 
