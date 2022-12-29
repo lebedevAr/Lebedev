@@ -30,3 +30,6 @@ thought func
 # Время выполнения с multiprocessing (6 threads)
 ![multi1](https://user-images.githubusercontent.com/105739082/210015453-58ff6fc7-5e88-451e-9071-a54d6f0b421c.png)
 
+# Время выполнения с concurrent.futures
+(Получилось очень медленно, поэтому оставил с enable multiprocessin)
+![multi3](https://user-images.githubusercontent.com/105739082/210016815-a3f4a09b-96db-45f0-ad6b-af819d717594.png)
