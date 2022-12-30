@@ -33,3 +33,6 @@ thought func
 # Время выполнения с concurrent.futures
 (Получилось очень медленно, поэтому оставил с enable multiprocessin)
 ![multi3](https://user-images.githubusercontent.com/105739082/210016815-a3f4a09b-96db-45f0-ad6b-af819d717594.png)
+
+# Частотность валют
+![cur1](https://user-images.githubusercontent.com/105739082/210083101-3625f115-b0e4-4e09-a5d0-0d8743ab7f29.png)
