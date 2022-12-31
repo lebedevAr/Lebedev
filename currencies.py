@@ -1,6 +1,8 @@
 import pandas as pd
 import xmltodict
 import requests
+import sqlite3
+import os
 
 from math import isnan
 
@@ -9,14 +11,17 @@ class CSV_file:
     """Класс для обработки новых csv файлов.
             Attributes:
                 file_name (str): название csv файла, расположенного в папке проекта
+                new_csv_name (str): название готового csv файла
     """
-    def __init__(self, file_name):
+    def __init__(self, file_name, new_csv_name):
         """Инициализирует новый файл для обработки
 
             Args:
                 file_name (str): название csv файла, расположенного в папке проекта
+                new_csv_name (str): название готового csv файла (без расширения)
         """
         self.file_name = file_name
+        self.new_csv_name = f"{new_csv_name}.csv"
 
     def get_currency(self):
         """Возвращает список валют, с частотностью в более чем 5000 вакансий
@@ -55,7 +60,7 @@ class CSV_file:
                 result_data = pd.concat([result_data, pd.DataFrame([dict])])
                 if year == int(range_date[1][0]) and month == int(range_date[1][1]) or month == 12: break
 
-        result_data.to_csv("currency.csv", index=False)
+        result_data.to_csv(self.new_csv_name, index=False)
 
     def get_info_by_year(self):
         """Группирует по годам
@@ -108,8 +113,18 @@ class CSV_file:
         result.drop(labels=["salary_from", "salary_to", "salary_currency"], axis=1, inplace=True)
         result = result[["name", "salary", "area_name", "published_at"]]
         result.to_csv("new_vacancies.csv", index=False)
-        print("cool")
+        print("done")
+
+    def to_db(self):
+        """
+        Переводит csv-файл в базу данных sqlite3.
+        """
+        if os.path.exists(self.new_csv_name):
+            df = pd.read_csv(self.new_csv_name)
+            df.to_sql('currency', sqlite3.connect('currency.sqlite'), if_exists='replace', index=False)
+        else:
+            print("Файл не найден")
 
 
-new_csv = CSV_file("vacancies_dif_currencies.csv")
-new_csv.get_conversion()
+new_csv = CSV_file("vacancies_dif_currencies.csv", "new_vacancies")
+new_csv.to_db()
