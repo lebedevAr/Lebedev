@@ -37,4 +37,6 @@ thought func
 # Частотность валют
 ![cur1](https://user-images.githubusercontent.com/105739082/210083101-3625f115-b0e4-4e09-a5d0-0d8743ab7f29.png)
 
-$venv\Scripts\activate. bat
+```
+cd PycharmProjects/
+```
